@@ -1,2 +1,2 @@
 # swift-auth
-Custom Authenticator for github.com/ncw/swift
+Custom Authenticator for github.com/ncw/swift with connection timeouts
