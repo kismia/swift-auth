@@ -1,4 +1,4 @@
-package swift_auth
+package auth
 
 import (
 	"context"
