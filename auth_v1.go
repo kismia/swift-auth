@@ -34,31 +34,10 @@ func (auth *v1Auth) Request(c *swift.Connection) (*http.Request, error) {
 	}
 	err = auth.Response(resp)
 	if err != nil {
-		return nil, errors.Wrapf(err, "do auth request")
+		return nil, errors.Wrapf(err, "read response")
 	}
 
 	return nil, nil
-}
-
-func doRequest(r *http.Request, transport http.RoundTripper) (*http.Response, error) {
-	cli := http.Client{Transport: transport}
-	resp, err := cli.Do(r)
-	if err != nil {
-		return resp, errors.Wrap(err, "do request")
-	}
-	defer func() {
-		drainAndClose(resp.Body, &err)
-		// Flush the auth connection - we don't want to keep
-		// it open if keepalives were enabled
-		flushKeepaliveConnections(transport)
-	}()
-	if err = parseHeaders(resp); err != nil {
-		// Try again for a limited number of times on
-		// AuthorizationFailed or BadRequest. This allows us
-		// to try some alternate forms of the request
-		return resp, err
-	}
-	return resp, nil
 }
 
 // v1 Authentication - read response

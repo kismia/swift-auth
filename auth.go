@@ -2,10 +2,12 @@ package auth
 
 import (
 	"fmt"
+	"net/http"
 	"strings"
 	"time"
 
 	"github.com/ncw/swift"
+	"github.com/pkg/errors"
 )
 
 // Create a new Authenticator
@@ -39,4 +41,19 @@ func New(authUrl, apiKey string, authVersion int, connTimeout time.Duration) (sw
 		return &v3Auth{timeout: connTimeout}, nil
 	}
 	return nil, fmt.Errorf("auth Version %d not supported", authVersion)
+}
+
+func doRequest(r *http.Request, transport http.RoundTripper) (*http.Response, error) {
+	cli := http.Client{Transport: transport}
+	resp, err := cli.Do(r)
+	if err != nil {
+		return resp, errors.Wrap(err, "do request")
+	}
+	if err = parseHeaders(resp); err != nil {
+		// Try again for a limited number of times on
+		// AuthorizationFailed or BadRequest. This allows us
+		// to try some alternate forms of the request
+		return resp, err
+	}
+	return resp, nil
 }

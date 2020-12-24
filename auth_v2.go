@@ -74,7 +74,7 @@ func (auth *v2Auth) Request(c *swift.Connection) (*http.Request, error) {
 	}
 	err = auth.Response(resp)
 	if err != nil {
-		return nil, errors.Wrapf(err, "do auth request")
+		return nil, errors.Wrapf(err, "read response")
 	}
 
 	return nil, nil
