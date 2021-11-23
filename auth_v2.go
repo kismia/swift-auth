@@ -8,7 +8,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ncw/swift"
+	"github.com/ncw/swift/v2"
 	"github.com/pkg/errors"
 )
 
@@ -23,7 +23,7 @@ type v2Auth struct {
 }
 
 // v2 Authentication - make request
-func (auth *v2Auth) Request(c *swift.Connection) (*http.Request, error) {
+func (auth *v2Auth) Request(ctx context.Context, c *swift.Connection) (*http.Request, error) {
 	auth.Region = c.Region
 	// Toggle useApiKey if not first run and not OK yet
 	if auth.notFirst && !auth.useApiKeyOk {
@@ -59,7 +59,7 @@ func (auth *v2Auth) Request(c *swift.Connection) (*http.Request, error) {
 	}
 	url += "tokens"
 
-	var ctx, cancel = context.WithTimeout(context.Background(), auth.timeout)
+	ctx, cancel := context.WithTimeout(ctx, auth.timeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, "POST", url, bytes.NewBuffer(body))
 	if err != nil {
@@ -72,7 +72,7 @@ func (auth *v2Auth) Request(c *swift.Connection) (*http.Request, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "do auth request")
 	}
-	err = auth.Response(resp)
+	err = auth.Response(ctx, resp)
 	if err != nil {
 		return nil, errors.Wrapf(err, "read response")
 	}
@@ -81,7 +81,7 @@ func (auth *v2Auth) Request(c *swift.Connection) (*http.Request, error) {
 }
 
 // v2 Authentication - read response
-func (auth *v2Auth) Response(resp *http.Response) error {
+func (auth *v2Auth) Response(_ context.Context, resp *http.Response) error {
 	auth.Auth = new(v2AuthResponse)
 	err := readJson(resp, auth.Auth)
 	// If successfully read Auth then no need to toggle useApiKey any more

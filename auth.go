@@ -6,7 +6,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/ncw/swift"
+	"github.com/ncw/swift/v2"
 	"github.com/pkg/errors"
 )
 

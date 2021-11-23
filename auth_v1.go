@@ -6,7 +6,7 @@ import (
 	"net/url"
 	"time"
 
-	"github.com/ncw/swift"
+	"github.com/ncw/swift/v2"
 	"github.com/pkg/errors"
 )
 
@@ -17,7 +17,7 @@ type v1Auth struct {
 }
 
 // v1 Authentication - make request
-func (auth *v1Auth) Request(c *swift.Connection) (*http.Request, error) {
+func (auth *v1Auth) Request(ctx context.Context, c *swift.Connection) (*http.Request, error) {
 	ctx, cancel := context.WithTimeout(context.Background(), auth.timeout)
 	defer cancel()
 	req, err := http.NewRequestWithContext(ctx, "GET", c.AuthUrl, nil)
@@ -32,7 +32,7 @@ func (auth *v1Auth) Request(c *swift.Connection) (*http.Request, error) {
 	if err != nil {
 		return nil, errors.Wrapf(err, "do auth request")
 	}
-	err = auth.Response(resp)
+	err = auth.Response(ctx, resp)
 	if err != nil {
 		return nil, errors.Wrapf(err, "read response")
 	}
@@ -41,7 +41,7 @@ func (auth *v1Auth) Request(c *swift.Connection) (*http.Request, error) {
 }
 
 // v1 Authentication - read response
-func (auth *v1Auth) Response(resp *http.Response) error {
+func (auth *v1Auth) Response(_ context.Context, resp *http.Response) error {
 	auth.headers = resp.Header
 	return nil
 }
